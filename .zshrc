@@ -1,113 +1,122 @@
-# If you come from bash you might have to change your $PATH.
-# export PATH=$HOME/bin:/usr/local/bin:$PATH
+# Customize to your needs...
+# Set up the prompt
 
-# Path to your oh-my-zsh installation.
-  export ZSH=/home/halcyon/.oh-my-zsh
-RPROMPT='[%d]'
+autoload -Uz promptinit
+promptinit
+#export ZSH_THEME="lime"
+
+setopt histignorealldups sharehistory
+
 setopt nonomatch
+
+# Use vim keybindings even if our EDITOR is set to emacs
+bindkey -v
+
+# ^R で履歴検索をするときに * でワイルドカードを使用出来るようにする
+bindkey '^R' history-incremental-pattern-search-backward
+
+# Keep 1000 lines of history within the shell and save it to ~/.zsh_history:
+HISTSIZE=100000
+SAVEHIST=100000
 HISTFILE=~/.zsh_history
-HISTSIZE=10000
-SAVEHIST=10000
+setopt hist_ignore_dups
 
-# cdコマンドを省略して、ディレクトリ名のみの入力で移動
-setopt auto_cd
-
-# 自動でpushdを実行
+# cd したら自動的にpushdする
 setopt auto_pushd
-
-# pushdから重複を削除
+# 重複したディレクトリを追加しない
 setopt pushd_ignore_dups
-
+# スペースから始まるコマンド行はヒストリに残さない
+setopt hist_ignore_space
+# ヒストリに保存するときに余分なスペースを削除する
+setopt hist_reduce_blanks
+# 高機能なワイルドカード展開を使用する
+setopt extended_glob
+setopt hist_verify
+setopt hist_save_no_dups
+setopt auto_cd
+cdpath=(.. ~ ~/src)
 # コマンドミスを修正
 setopt correct
-# 補完で大文字にもマッチ
-zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
-autoload -U compinit; compinit # 補完機能を有効にする
-setopt auto_list               # 補完候補を一覧で表示する(d)
-setopt auto_menu               # 補完キー連打で補完候補を順に表示する(d)
-setopt list_packed             # 補完候補をできるだけ詰めて表示する
-setopt share_history      # 他のシェルのヒストリをリアルタイムで共有する
-setopt hist_reduce_blanks # 余分なスペースを削除してヒストリに保存する
-# プロンプトに色を付ける
-autoload -U colors; colors
 
-# Set name of the theme to load. Optionally, if you set this to "random"
-# it'll load a random theme each time that oh-my-zsh is loaded.
-# See https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
-ZSH_THEME="robbyrussell"
+# Use modern completion system
 
-# Uncomment the following line to use case-sensitive completion.
-# CASE_SENSITIVE="true"
+autoload -Uz compinit
+compinit
 
-# Uncomment the following line to use hyphen-insensitive completion. Case
-# sensitive completion must be off. _ and - will be interchangeable.
-# HYPHEN_INSENSITIVE="true"
+#Use Colore
+autoload -Uz colors
+colors
 
-# Uncomment the following line to disable bi-weekly auto-update checks.
-# DISABLE_AUTO_UPDATE="true"
+#PROMPT='[%n%#]'
+#RPROMPT='[%c]'
 
-# Uncomment the following line to change how often to auto-update (in days).
-# export UPDATE_ZSH_DAYS=13
+zstyle ':completion:*' auto-description 'specify: %d'
+zstyle ':completion:*' completer _expand _complete _correct _approximate
+zstyle ':completion:*' format 'Completing %d'
+zstyle ':completion:*' group-name ''
+zstyle ':completion:*' menu select=2
+eval "$(dircolors -b)"
+zstyle ':completion:*:default' list-colors ${(s.:.)LS_COLORS}
+zstyle ':completion:*' list-colors ''
+zstyle ':completion:*' list-prompt %SAt %p: Hit TAB for more, or the character to insert%s
+# 補完で小文字でも大文字にマッチさせる
+zstyle ':completion:*' matcher-list '' 'm:{a-z}={A-Z}' 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=* l:|=*'
+zstyle ':completion:*' menu select=long
+zstyle ':completion:*' select-prompt %SScrolling active: current selection at %p%s
+zstyle ':completion:*' use-compctl false
+zstyle ':completion:*' verbose true
+# ../ の後は今いるディレクトリを補完しない
+zstyle ':completion:*' ignore-parents parent pwd ..
 
-# Uncomment the following line to disable colors in ls.
-# DISABLE_LS_COLORS="true"
+# ps コマンドのプロセス名補完
+zstyle ':completion:*:processes' command 'ps x -o pid,s,args'
+# vcs_info
+autoload -Uz vcs_info
+autoload -Uz add-zsh-hook
 
-# Uncomment the following line to disable auto-setting terminal title.
-# DISABLE_AUTO_TITLE="true"
+zstyle ':vcs_info:*' formats '%F{green}(%s)-[%b]%f'
+zstyle ':vcs_info:*' actionformats '%F{red}(%s)-[%b|%a]%f'
 
-# Uncomment the following line to enable command auto-correction.
-# ENABLE_CORRECTION="true"
+function _update_vcs_info_msg() {
+    LANG=en_US.UTF-8 vcs_info
+    RPROMPT="${vcs_info_msg_0_}"
+}
+add-zsh-hook precmd _update_vcs_info_msg
+# 日本語ファイル名を表示可能にする
+setopt print_eight_bit
 
-# Uncomment the following line to display red dots whilst waiting for completion.
-# COMPLETION_WAITING_DOTS="true"
+# フローコントロールを無効にする
+setopt no_flow_control
+zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#)*=0=01;31'
+zstyle ':completion:*:kill:*' command 'ps -u $USER -o pid,%cpu,tty,cputime,cmd'
+alias -g py='python3.6'
+alias -g ls='ls -a'
+alias -g c='| xsel --input --clipboard'
+export GOPATH="$HOME/.go"
+export PATH=$PATH:$HOME/.go/bin
+alias sagyobgm='mpv --no-video --shuffle 'https://www.youtube.com/playlist?list=PLa1sGLggpmLBlGJwsWUQM-6AdUHKMepzu''
 
-# Uncomment the following line if you want to disable marking untracked files
-# under VCS as dirty. This makes repository status check for large repositories
-# much, much faster.
-# DISABLE_UNTRACKED_FILES_DIRTY="true"
+#zplug part
+source ~/.zplug/init.zsh
+zplug "zsh-users/zsh-syntax-highlighting"
+zplug "chrissicool/zsh-256color"
+zplug "Tarrasch/zsh-colors"
+zplug "mafredri/zsh-async", from:github
+zplug "zsh-users/zsh-history-substring-search"
+zplug 'yous/lime', as:theme
+#zplug "sindresorhus/pure", use:pure.zsh, from:github, as:theme
 
-# Uncomment the following line if you want to change the command execution time
-# stamp shown in the history command output.
-# The optional three formats: "mm/dd/yyyy"|"dd.mm.yyyy"|"yyyy-mm-dd"
-# HIST_STAMPS="mm/dd/yyyy"
-
-# Would you like to use another custom folder than $ZSH/custom?
-# ZSH_CUSTOM=/path/to/new-custom-folder
-
-# Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
-# Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
-# Example format: plugins=(rails git textmate ruby lighthouse)
-# Add wisely, as too many plugins slow down shell startup.
-plugins=(git)
-
-source $ZSH/oh-my-zsh.sh
-
-# User configuration
-
-# export MANPATH="/usr/local/man:$MANPATH"
-
-# You may need to manually set your language environment
-# export LANG=en_US.UTF-8
-
-# Preferred editor for local and remote sessions
-# if [[ -n $SSH_CONNECTION ]]; then
-#   export EDITOR='vim'
-# else
-#   export EDITOR='mvim'
-# fi
-
-# Compilation flags
-# export ARCHFLAGS="-arch x86_64"
-
-# ssh
-# export SSH_KEY_PATH="~/.ssh/rsa_id"
-
-# Set personal aliases, overriding those provided by oh-my-zsh libs,
-# plugins, and themes. Aliases can be placed here, though oh-my-zsh
-# users are encouraged to define aliases within the ZSH_CUSTOM folder.
-# For a full list of active aliases, run `alias`.
+# Install plugins if there are plugins that have not been installed
 #
-# Example aliases
-# alias zshconfig="mate ~/.zshrc"
-# alias ohmyzsh="mate ~/.oh-my-zsh"
-alias sagyobgm="mpv --shuffle --no-video 'https://www.youtube.com/playlist?list=PLa1sGLggpmLBlGJwsWUQM-6AdUHKMepzu'"
+if ! zplug check --verbose; then
+    printf "Install? [y/N]: "
+    if read -q; then
+        echo; zplug install
+    fi
+fi
+
+# Then, source plugins and add commands to $PATH
+zplug load --verbose
+#prompt <powerline.zsh>
+export ZSH_THEME="lime"
+
